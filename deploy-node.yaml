@@ -1,0 +1,54 @@
+---
+- name: Install node and npm
+  hosts: 167.172.145.81
+  tasks:
+    - name: Update apt repo and cache
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+    - name: Install nodejs and npm
+      apt:
+        pkg:
+          - nodejs
+          - npm
+
+- name: Create new linux user for node app
+  hosts: 167.172.145.81
+  vars_files:
+    project-vars.yaml
+  tasks:
+    - name: Create linux user
+      user:
+        name: "{{linux_name}}"
+        comment: Laura Admin
+        group: admin
+      register: user_creation_result
+    - debug: msg={{user_creation_result}}
+
+- name: Deploy nodejs app
+  hosts: 167.172.145.81
+  become: True
+  become_user: laura
+  vars_files:
+    project-vars.yaml
+  vars:
+    - app_file_directory: /home/{{linux_name}}/twn-devops
+    - user_home_dir: /home/{{linux_name}}
+  tasks:
+    - name: Copy nodejs file to server then unpack the tar
+      unarchive:
+        src: "{{app_file_directory}}/ansible/nodejs-app-{{version}}.tgz"
+        dest: "{{user_home_dir}}"
+      register: user_creation_result
+    - debug: msg={{user_creation_result}}
+    - name: Install dependencies in package.json
+      npm:
+        path: "{{user_home_dir}}/package"
+    - name: Start the application
+      command: 
+        chdir: "{{user_home_dir}}/package/app"
+        cmd: node server
+      async: 1000
+      poll: 0
+    - name: Ensure app is running
+      shell: ps aux | grep node
+      register: app_status
+    - debug: msg={{app_status.stdout_lines}}
