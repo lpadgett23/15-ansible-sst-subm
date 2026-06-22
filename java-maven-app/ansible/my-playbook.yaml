@@ -16,7 +16,6 @@
 - name: Install Docker-compose
   hosts: aws_ec2
   become: yes
-  become_user: laura
   tasks:
     - name: docker-compose directory has been created
       file:
