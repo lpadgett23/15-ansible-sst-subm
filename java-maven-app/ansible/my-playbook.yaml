@@ -1,6 +1,6 @@
 ---
 - name: Install Docker
-  hosts: all
+  hosts: aws_ec2
   become: yes   
   tasks:
     - name: Make sure Docker is installed
@@ -14,7 +14,7 @@
         state: started
 
 - name: Install Docker-compose
-  hosts: all
+  hosts: aws_ec2
   become: yes
   become_user: laura
   tasks:
