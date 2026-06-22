@@ -1,0 +1,19 @@
+# local .terraform dir
+.terraform/*
+
+# tf state files
+*.tfstate
+*.tfstate.*
+
+# tf variable files, may include sensitive data
+*.tfvars
+
+
+venv
+.venv
+venv/
+
+.env
+project-vars
+
+ssh_private_key.txt

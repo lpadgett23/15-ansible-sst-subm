@@ -1,0 +1,77 @@
+---
+- name: Install Docker
+  hosts: docker_server
+  become: yes     # become_user: root is already the default here so don't have to include
+  tasks:
+    - name: Make sure Docker is installed
+      yum: 
+        name: docker
+        update_cache: yes
+        state: present
+    - name: Make sure docker daemon is running  # this reformulation is one approach to best practice
+      systemd:
+        name: docker
+        state: started
+
+- name: Install Docker-compose
+  hosts: docker_server
+  tasks:
+    - name: docker-compose directory has been created
+      file:
+        path: ~/.docker/cli-plugins
+        state: directory
+    - name: Get architecture of remote machine
+      shell: uname -m
+      register: remote_arch
+    - name: Install docker-compose
+      get_url: 
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{ remote_arch.stdout }}"
+        dest: ~/.docker/cli-plugins/docker-compose
+        mode: +x
+
+- name: Add ec2-user to docker group
+  hosts: docker_server
+  become: yes
+  tasks:
+    - name: Add ec2-user to docker group
+      user: 
+        name: ec2-user
+        groups: docker
+        append: yes
+    - name: Reconnect to server session
+      meta: reset_connection
+
+- name: Test docker pull
+  hosts: docker_server
+  tasks: 
+    - name: Pull redis
+      docker_image:
+        name: redis
+        source: pull
+
+# - name: Test docker pull
+#   hosts: docker_server
+#   tasks:
+#     - name: Pull redis
+#       command: docker pull redis # command: & shell: have no state mgmt in them, so ansible will always execute it again -> the fix: use the docker community modules in ansible docs
+
+- name: Start docker containers
+  hosts: docker_server
+  vars_files:
+    - project-vars
+  # vars_prompt:
+  #   - name: docker_password
+  #     prompt: Enter password or token for docker registry
+  tasks:
+    - name: Copy docker-compose file
+      copy:
+        src: /home/laura/twnsubs/15-ansible-sst-subm/docker-compose-full.yaml
+        dest: /home/ec2-user/docker-compose.yaml
+    - name: Docker login
+      docker_login:
+        username: lepcloud23
+        password: "{{docker_password}}"
+    - name: Start containers from compose
+      community.docker.docker_compose_v2:
+        project_src: /home/ec2-user
+        state: present          # already default for the module
