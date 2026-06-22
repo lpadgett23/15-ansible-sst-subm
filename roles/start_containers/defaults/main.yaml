@@ -1,0 +1,4 @@
+# hypothetical maybe this is the default registry for the company, but the devs can override it in their own vars folders, their project vars or commandline vars
+docker_registry: https://aws_account_id.dkr.ecr.region.amaxonaws.com
+docker_username: AWS
+docker_password: xxxxxxxxxxx

@@ -1,0 +1,14 @@
+- name: Copy docker-compose file
+  copy:
+    src: docker-compose-full.yaml       # ansible knows how to resolve this to the files/ dir
+    dest: /home/laura/docker-compose.yaml
+    
+- name: Docker login
+  docker_login:
+    registry_url: "{{ docker_registry }}"
+    username: "{{ docker_username }}"
+    password: "{{ docker_password }}"         # this is still outside of roles/ in gitignored project-vars. however, also note -- vars folder main.yml is first order of precedence over project-vars and would override it
+
+- name: Start containers from compose
+  community.docker.docker_compose_v2:
+    project_src: /home/laura
