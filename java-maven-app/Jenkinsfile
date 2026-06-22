@@ -9,7 +9,7 @@ pipeline {
             sh "scp -o StrictHostKeyChecking=no java-maven-app/ansible/* root@157.230.10.102:/root"
 
             withCredentials([sshUserPrivateKey(credentialsId: 'ec2-server-key', keyFileVariable: 'keyfile', usernameVariable: 'user')]) {
-              sh "scp ${keyfile} root@157.230.10.102:/root/ssh-key.pem"
+              sh 'scp $keyfile root@157.230.10.102:/root/ssh-key.pem'
             }
           }
         }
